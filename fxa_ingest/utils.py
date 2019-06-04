@@ -19,7 +19,7 @@ def parse_user_agent(ua):
     return user_agent
 
 def unixtime_to_ts(unix_ts):
-    return datetime.fromtimestamp(int(unix_ts)).strftime('%Y-%m-%dT%H:%M:%SZ')
+    return datetime.utcfromtimestamp(int(unix_ts)).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 def locale_to_lang(locale):
     lang = get_best_language(get_accept_languages(locale))
