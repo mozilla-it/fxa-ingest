@@ -32,6 +32,7 @@ spanner_client   = spanner.Client(project=spanner_project_id)
 spanner_instance = spanner_client.instance(spanner_instance_id)
 spanner_database = spanner_instance.database(spanner_database_id)
 
+MAX_LANG_LENGTH    = 10
 MAX_OS_LENGTH      = 50
 MAX_SERVICE_LENGTH = 50
 MAX_LOCALE_LENGTH  = 100
@@ -74,7 +75,7 @@ customer_record_table_ddl: str = ("\n"
                                  f"  service           STRING({MAX_SERVICE_LENGTH}),\n"
                                   "  create_ts         TIMESTAMP NOT NULL OPTIONS(allow_commit_timestamp=true),\n"
                                  f"  locale            STRING({MAX_LOCALE_LENGTH}),\n"
-                                  "  lang              STRING(10),\n"
+                                 f"  lang              STRING({MAX_LANG_LENGTH}),\n"
                                   "  marketing_opt_in  BOOL,\n"
                                  f"  metrics_context   STRING({MAX_MC_LENGTH})\n"
                                   ") PRIMARY KEY (fxa_id)")
@@ -338,7 +339,7 @@ def transform(field_name:str, data):
             return data['locale'][:MAX_LOCALE_LENGTH]
         return None
     elif field_name == 'lang':
-        return locale_to_lang(data.get('locale', None))
+        return locale_to_lang(data.get('locale', None))[:MAX_LANG_LENGTH]
 
 
 def insert_service_login(event_unique_id, message_json, message_dict):
