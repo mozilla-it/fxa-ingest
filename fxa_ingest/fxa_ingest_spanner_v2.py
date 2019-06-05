@@ -21,14 +21,14 @@ logging.basicConfig(level=logging.INFO)
 pubsub_project_id = os.environ.get('PUBSUB_PROJECT_ID', '')
 subscription_name = os.environ.get('FXA_PUBSUB_SUBSCRIPTION', '')
 
-spanner_project_id = os.environ.get('SPANNER_PROJECT_ID', '')
+spanner_project_id  = os.environ.get('SPANNER_PROJECT_ID', '')
 spanner_instance_id = os.environ.get('SPANNER_INSTANCE_ID', '')
 spanner_database_id = os.environ.get('SPANNER_DATABASE_ID', 'fxa')
 
 if not pubsub_project_id or not subscription_name or not spanner_project_id or not spanner_instance_id:
     raise Exception('Required ENV vars missing')
 
-spanner_client = spanner.Client(project=spanner_project_id)
+spanner_client   = spanner.Client(project=spanner_project_id)
 spanner_instance = spanner_client.instance(spanner_instance_id)
 spanner_database = spanner_instance.database(spanner_database_id)
 
