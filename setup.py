@@ -4,7 +4,7 @@ import os
 setup(name='fxa-ingest',
       version='0.0.1',
       description='Python libraries/scripts for various integrations',
-      python_requires='>=3.6',
+      python_requires='>=3.5',
       author='Chris Valaas',
       author_email='cvalaas@mozilla.com',
       packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
