@@ -41,6 +41,7 @@ def process_account_events(aws_region='us-west-2',
         # If no region is given, infer it from the instance metadata.
         logger.debug("Connecting to queue %r in %r", sqs_queue_url, aws_region)
         client = boto3.client('sqs',
+                      region_name=aws_region,
                       aws_access_key_id=aws_access_key_id,
                       aws_secret_access_key=aws_secret_access_key)
         i = 0
@@ -85,8 +86,8 @@ def send_event_to_pubsub(event):
     if message_future.exception(timeout=30):
         print('Publishing message on {} threw an Exception {}.'.format(
             topic_name, message_future.exception()))
-    else:
-        print(message_future.result())
+    #else:
+        #print(message_future.result())
 
   # Data must be a bytestring
   data = final_json.encode('utf-8')
@@ -94,7 +95,8 @@ def send_event_to_pubsub(event):
   message_future = publisher.publish(topic_path, data=data)
   message_future.add_done_callback(callback)
 
-print('Published message IDs:')
+#print('Published message IDs:')
+print('Running...')
 
 def process_account_event(body):
     """Parse and process a single account event."""
