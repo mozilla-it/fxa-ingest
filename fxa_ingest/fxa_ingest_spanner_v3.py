@@ -16,7 +16,7 @@ from fxa_ingest.utils import (fxa_source_url, parse_user_agent, unixtime_to_ts, 
 #from utils import (fxa_source_url, parse_user_agent, unixtime_to_ts, locale_to_lang)
 
 #logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=logging.WARN)
+#logging.basicConfig(level=logging.INFO)
 
 pubsub_project_id = os.environ.get('PUBSUB_PROJECT_ID', '')
 subscription_name = os.environ.get('FXA_PUBSUB_SUBSCRIPTION', '')

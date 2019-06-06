@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import os, sys
+import argparse
+import logging
 
 from google.api_core import exceptions
 
@@ -9,6 +11,14 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 from fxa_ingest import fxa_ingest_spanner_v3
+
+parser = argparse.ArgumentParser(description="Read from Pub/Sub, Write to Spanner")
+parser.add_argument('-l', '--log-level', action='store', help='log level (debug, info, warning, error, or critical)',
+                    type=str, default='WARNING')
+args = parser.parse_args()
+
+#logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=args.log_level.upper())
 
 try:
     fxa_ingest_spanner_v3.create_database()
