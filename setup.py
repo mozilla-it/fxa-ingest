@@ -13,6 +13,6 @@ setup(name='fxa-ingest',
         'google-cloud-pubsub==0.41.0',
         'google-cloud-spanner==1.9.0',
         'user-agents==2.0',
-        'boto==2.49.0',
+        'boto3==1.9.159',
       ]
     )
