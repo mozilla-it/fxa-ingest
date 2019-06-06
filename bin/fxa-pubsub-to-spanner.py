@@ -20,10 +20,11 @@ args = parser.parse_args()
 #logging.basicConfig(level=logging.WARN)
 logging.basicConfig(level=args.log_level.upper())
 
-try:
-    fxa_ingest_spanner_v3.create_database()
-except exceptions.AlreadyExists as e:
-    pass
+# let's rely on the database being there. no need to give this script too many permissions
+#try:
+#    fxa_ingest_spanner_v3.create_database()
+#except exceptions.AlreadyExists as e:
+#    pass
 for table_name in ['raw_events', 'failed_inserts', 'customer_record', 'service_logins', 'devices']:
     fxa_ingest_spanner_v3.create_table(table_name)
 fxa_ingest_spanner_v3.listen_loop()
