@@ -117,7 +117,7 @@ def process_account_event(body):
         if 'email' in event:
           event['email'] = 'fakeemail@mozilla.com'
 
-        event['uid'] = hashlib.sha3_224( uid ).hexdigest()
+        event['uid'] = hashlib.sha256( uid ).hexdigest()
         
         #print("Transformed event:")
         #print(event)
