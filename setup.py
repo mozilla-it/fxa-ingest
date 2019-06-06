@@ -13,7 +13,7 @@ setup(name='fxa-ingest',
       install_requires=[
         'google-cloud-pubsub==0.41.0',
         'google-cloud-spanner==1.9.0',
-        'grcpio-gcp==0.2.2',   # this seems to be explicitly required on debian python 3.5  ?!
+        'grpcio-gcp==0.2.2',   # this seems to be explicitly required on debian python 3.5  ?!
         'user-agents==2.0',
         'boto3==1.9.159',
       ]
