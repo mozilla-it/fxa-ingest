@@ -46,68 +46,80 @@ MAX_MC_LENGTH      = 255
 # noinspection SqlNoDataSourceInspection
 raw_events_table_ddl = ("\n"
                         "          CREATE TABLE raw_events (\n"
-                       f"            insert_id        STRING({MAX_ID_LENGTH}) NOT NULL,\n"
+                        "            insert_id        STRING({MAX_ID_LENGTH}) NOT NULL,\n"
                         "            insert_ts        TIMESTAMP NOT NULL\n"
                         "            OPTIONS(allow_commit_timestamp=true),\n"
-                       f"            fxa_id           STRING({MAX_ID_LENGTH}) NOT NULL,\n"
+                        "            fxa_id           STRING({MAX_ID_LENGTH}) NOT NULL,\n"
                         "            fxa_ts           TIMESTAMP NOT NULL,\n"
                         "            raw_event_json   STRING(MAX)\n"
-                        "          ) PRIMARY KEY (fxa_id, fxa_ts, insert_id)")
+                        "          ) PRIMARY KEY (fxa_id, fxa_ts, insert_id)").format(MAX_ID_LENGTH=MAX_ID_LENGTH)
 
 # noinspection SqlNoDataSourceInspection
 failed_inserts_table_ddl = ("\n"
                             "          CREATE TABLE failed_inserts (\n"
-                           f"            insert_id        STRING({MAX_ID_LENGTH}) NOT NULL,\n"
+                            "            insert_id        STRING({MAX_ID_LENGTH}) NOT NULL,\n"
                             "            table_name       STRING(30),\n"
                             "            error_string     STRING(MAX),\n"
                             "            failed_data      STRING(MAX),\n"
                             "            insert_ts        TIMESTAMP NOT NULL\n"
                             "            OPTIONS(allow_commit_timestamp=true)\n"
-                            "          ) PRIMARY KEY (insert_ts, insert_id)")
+                            "          ) PRIMARY KEY (insert_ts, insert_id)").format(MAX_ID_LENGTH=MAX_ID_LENGTH)
 
 # noinspection SqlNoDataSourceInspection
 customer_record_table_ddl: str = ("\n"
                                   "CREATE TABLE customer_record (\n"
-                                 f"  insert_id         STRING({MAX_ID_LENGTH}) NOT NULL,\n"
-                                 f"  fxa_id            STRING({MAX_ID_LENGTH}) NOT NULL,\n"
+                                  "  insert_id         STRING({MAX_ID_LENGTH}) NOT NULL,\n"
+                                  "  fxa_id            STRING({MAX_ID_LENGTH}) NOT NULL,\n"
                                   "  fxa_ts            TIMESTAMP NOT NULL,\n"
-                                 f"  email             STRING({MAX_EMAIL_LENGTH}),\n"
-                                 f"  service           STRING({MAX_SERVICE_LENGTH}),\n"
+                                  "  email             STRING({MAX_EMAIL_LENGTH}),\n"
+                                  "  service           STRING({MAX_SERVICE_LENGTH}),\n"
                                   "  create_ts         TIMESTAMP NOT NULL OPTIONS(allow_commit_timestamp=true),\n"
-                                 f"  locale            STRING({MAX_LOCALE_LENGTH}),\n"
-                                 f"  lang              STRING({MAX_LANG_LENGTH}),\n"
+                                  "  locale            STRING({MAX_LOCALE_LENGTH}),\n"
+                                  "  lang              STRING({MAX_LANG_LENGTH}),\n"
                                   "  marketing_opt_in  BOOL,\n"
-                                 f"  metrics_context   STRING({MAX_MC_LENGTH})\n"
-                                  ") PRIMARY KEY (fxa_id)")
+                                  "  metrics_context   STRING({MAX_MC_LENGTH})\n"
+                                  ") PRIMARY KEY (fxa_id)").format(MAX_ID_LENGTH=MAX_ID_LENGTH,
+                                                                   MAX_EMAIL_LENGTH=MAX_EMAIL_LENGTH,
+                                                                   MAX_SERVICE_LENGTH=MAX_SERVICE_LENGTH,
+                                                                   MAX_LOCALE_LENGTH=MAX_LOCALE_LENGTH,
+                                                                   MAX_LANG_LENGTH=MAX_LANG_LENGTH,
+                                                                   MAX_MC_LENGTH=MAX_MC_LENGTH)
 
 # noinspection SqlNoDataSourceInspection
 service_logins_table_ddl: str = ("\n"
                             "          CREATE TABLE service_logins (\n"
-                           f"            insert_id        STRING({MAX_ID_LENGTH}) NOT NULL,\n"
-                           f"            fxa_id           STRING({MAX_ID_LENGTH}) NOT NULL,\n"
+                            "            insert_id        STRING({MAX_ID_LENGTH}) NOT NULL,\n"
+                            "            fxa_id           STRING({MAX_ID_LENGTH}) NOT NULL,\n"
                             "            fxa_ts           TIMESTAMP NOT NULL,\n"
-                           f"            service          STRING({MAX_SERVICE_LENGTH}),\n"
+                            "            service          STRING({MAX_SERVICE_LENGTH}),\n"
                             "            device_count     INT64,\n"
-                           f"            country          STRING({MAX_COUNTRY_LENGTH}),\n"
-                           f"            useragent        STRING({MAX_UA_LENGTH}),\n"
-                           f"            os               STRING({MAX_OS_LENGTH}),\n"
-                           f"            os_version       STRING({MAX_OS_LENGTH}),\n"
-                           f"            browser          STRING({MAX_BROWSER_LENGTH}),\n"
-                           f"            metrics_context  STRING({MAX_MC_LENGTH})\n"
-                            "          ) PRIMARY KEY (fxa_id, insert_id)")
+                            "            country          STRING({MAX_COUNTRY_LENGTH}),\n"
+                            "            useragent        STRING({MAX_UA_LENGTH}),\n"
+                            "            os               STRING({MAX_OS_LENGTH}),\n"
+                            "            os_version       STRING({MAX_OS_LENGTH}),\n"
+                            "            browser          STRING({MAX_BROWSER_LENGTH}),\n"
+                            "            metrics_context  STRING({MAX_MC_LENGTH})\n"
+                            "          ) PRIMARY KEY (fxa_id, insert_id)").format(MAX_ID_LENGTH=MAX_ID_LENGTH,
+                                                                                  MAX_SERVICE_LENGTH=MAX_SERVICE_LENGTH,
+                                                                                  MAX_COUNTRY_LENGTH=MAX_COUNTRY_LENGTH,
+                                                                                  MAX_UA_LENGTH=MAX_UA_LENGTH,
+                                                                                  MAX_OS_LENGTH=MAX_OS_LENGTH,
+                                                                                  MAX_BROWSER_LENGTH=MAX_BROWSER_LENGTH,
+                                                                                  MAX_MC_LENGTH=MAX_MC_LENGTH)
 
 # noinspection SqlNoDataSourceInspection
 devices_table_ddl = ("\n"
                      "CREATE TABLE devices (\n"
-                    f"  insert_id        STRING({MAX_ID_LENGTH}) NOT NULL,\n"
-                    f"  fxa_id           STRING({MAX_ID_LENGTH}) NOT NULL,\n"
+                     "  insert_id        STRING({MAX_ID_LENGTH}) NOT NULL,\n"
+                     "  fxa_id           STRING({MAX_ID_LENGTH}) NOT NULL,\n"
                      "  fxa_ts           TIMESTAMP NOT NULL,\n"
-                    f"  device_id        STRING({MAX_ID_LENGTH}),\n"
+                     "  device_id        STRING({MAX_ID_LENGTH}),\n"
                      "  device_type      STRING(20),\n"
-                    f"  metrics_context  STRING({MAX_MC_LENGTH}),\n"
+                     "  metrics_context  STRING({MAX_MC_LENGTH}),\n"
                      "  deleted          BOOL,\n"
                      "  deleted_ts       TIMESTAMP\n"
-                     ") PRIMARY KEY (fxa_id, device_id)")
+                     ") PRIMARY KEY (fxa_id, device_id)").format(MAX_ID_LENGTH=MAX_ID_LENGTH,
+                                                                 MAX_MC_LENGTH=MAX_MC_LENGTH)
 
 
 def create_database():
@@ -205,10 +217,10 @@ def safe_batch_insert2(event_unique_id: str, table_name: str, data: dict) -> obj
 
 def insert_failed_row(event_unique_id: str, message: str, table: str, error_str: str) -> object:
     logging.warning("WARNING: INSERTING A FAILED ROW")
-    logging.warning(f"WARNING: event_unique_id: {str(event_unique_id)}")
-    logging.warning(f"WARNING: error          : {str(error_str)}")
-    logging.warning(f"WARNING: table_name     : {table}")
-    logging.warning(f"WARNING: message        : {str(message)}")
+    logging.warning("WARNING: event_unique_id: {event_unique_id}".format(event_unique_id=event_unique_id))
+    logging.warning("WARNING: error          : {error_str}".format(error_str=str(error_str)))
+    logging.warning("WARNING: table_name     : {table}".format(table=table))
+    logging.warning("WARNING: message        : {message}".format(message=str(message)))
     safe_batch_insert2(
         event_unique_id, 'failed_inserts',
         {
@@ -393,7 +405,8 @@ def delete_device(event_unique_id, message_json, message_dict):
                 )]
             )
     except exceptions.NotFound as e:
-        logging.debug(f"delete_device failed. no record found in database. uid={message_dict['uid']} eui={event_unique_id}")
+        logging.debug("delete_device failed. no record found in database. uid={uid} "
+                      "eui={eui}".format(uid=message_dict['uid'], eui=event_unique_id))
 
 
 def update_customer_email(event_unique_id, message_json, message_dict):
@@ -408,7 +421,8 @@ def update_customer_email(event_unique_id, message_json, message_dict):
                 )]
             )
     except exceptions.NotFound as e:
-        logging.debug(f"update_customer_email failed. no record found in database. uid={message_dict['uid']} eui={event_unique_id}")
+        logging.debug("update_customer_email failed. no record found in database. uid={uid} "
+                      "eui={eui}".format(uid=message_dict['uid'], eui=event_unique_id))
 
 def update_customer_record(event_unique_id: str, message_json: str, data: dict):
     logging.debug("update_customer_record called for %s" % event_unique_id)
@@ -513,9 +527,14 @@ def pubsub_callback(message):
         message.ack()
         return
 
-    logging.info(f"uid={payload_dict['uid'][:10]}... eui={event_unique_id[:10]}... ts={unixtime_to_ts(payload_dict['ts'])} -- {payload_dict['event']} event received. ")
+    logging.info("uid={uid}... eui={eui}... ts={ts} -- {event} event received. ".format(
+        uid=payload_dict['uid'][:10],
+        eui=event_unique_id[:10],
+        ts=unixtime_to_ts(payload_dict['ts']),
+        event=payload_dict['event'] ))
+
     if int(payload_dict['ts']) % 3600 == 0:
-        logging.warning(f"processing data from {unixtime_to_ts(payload_dict['ts'])}")
+        logging.warning("processing data from {ts}".format(ts=unixtime_to_ts(payload_dict['ts'])))
 
     if payload_dict['event'] == 'delete':
         # "delete" event - remove user from all tables, including raw_events
