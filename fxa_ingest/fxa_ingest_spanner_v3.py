@@ -66,7 +66,7 @@ failed_inserts_table_ddl = ("\n"
                             "          ) PRIMARY KEY (insert_ts, insert_id)").format(MAX_ID_LENGTH=MAX_ID_LENGTH)
 
 # noinspection SqlNoDataSourceInspection
-customer_record_table_ddl: str = ("\n"
+customer_record_table_ddl = ("\n"
                                   "CREATE TABLE customer_record (\n"
                                   "  insert_id         STRING({MAX_ID_LENGTH}) NOT NULL,\n"
                                   "  fxa_id            STRING({MAX_ID_LENGTH}) NOT NULL,\n"
@@ -86,7 +86,7 @@ customer_record_table_ddl: str = ("\n"
                                                                    MAX_MC_LENGTH=MAX_MC_LENGTH)
 
 # noinspection SqlNoDataSourceInspection
-service_logins_table_ddl: str = ("\n"
+service_logins_table_ddl= ("\n"
                             "          CREATE TABLE service_logins (\n"
                             "            insert_id        STRING({MAX_ID_LENGTH}) NOT NULL,\n"
                             "            fxa_id           STRING({MAX_ID_LENGTH}) NOT NULL,\n"
@@ -166,7 +166,7 @@ def create_table(table_name):
             raise
 
 
-def safe_batch_insert2(event_unique_id: str, table_name: str, data: dict) -> object:
+def safe_batch_insert2(event_unique_id, table_name, data):
     """
 
     :rtype: object
@@ -215,7 +215,7 @@ def safe_batch_insert2(event_unique_id: str, table_name: str, data: dict) -> obj
 
 
 
-def insert_failed_row(event_unique_id: str, message: str, table: str, error_str: str) -> object:
+def insert_failed_row(event_unique_id, message, table, error_str):
     logging.warning("WARNING: INSERTING A FAILED ROW")
     logging.warning("WARNING: event_unique_id: {event_unique_id}".format(event_unique_id=event_unique_id))
     logging.warning("WARNING: error          : {error_str}".format(error_str=str(error_str)))
@@ -232,7 +232,7 @@ def insert_failed_row(event_unique_id: str, message: str, table: str, error_str:
         })
 
 
-def delete_customer_record(fxa_id: str) -> object:
+def delete_customer_record(fxa_id):
     customer_to_delete = spanner.KeySet(keys=[[fxa_id]])
     with spanner_database.batch() as batch:
         batch.delete('customer_record', customer_to_delete)
@@ -306,7 +306,7 @@ def insert_device(event_unique_id, message_json, message_dict):
 
     return True
 
-def transform(field_name:str, data):
+def transform(field_name, data):
     if field_name == 'service':
         if 'service' in data and data['service']:
           return data['service'][:MAX_SERVICE_LENGTH]
@@ -424,7 +424,7 @@ def update_customer_email(event_unique_id, message_json, message_dict):
         logging.debug("update_customer_email failed. no record found in database. uid={uid} "
                       "eui={eui}".format(uid=message_dict['uid'], eui=event_unique_id))
 
-def update_customer_record(event_unique_id: str, message_json: str, data: dict):
+def update_customer_record(event_unique_id, message_json, data):
     logging.debug("update_customer_record called for %s" % event_unique_id)
     with spanner_database.batch() as batch:
         batch.update(
