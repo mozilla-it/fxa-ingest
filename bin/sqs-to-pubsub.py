@@ -46,25 +46,18 @@ def process_account_events(aws_region='us-west-2',
                       aws_secret_access_key=aws_secret_access_key)
         i = 0
         while True:
-          #i += 1
-          #if i > 500:
-            #break
           response = client.receive_message(
             QueueUrl=sqs_queue_url,
             MaxNumberOfMessages=10,
             AttributeNames=[])
-          #print(response)
           for msg in response['Messages']:
             msg_body       = msg['Body']
             receipt_handle = msg['ReceiptHandle']
-            #print(msg_body)
             process_account_event(msg_body)
-            #print(f"Deleting message with ReceiptHandle ")
             del_response = client.delete_message(
                 QueueUrl=sqs_queue_url,
                 ReceiptHandle=receipt_handle
             )
-          #sys.exit()
 
         print("Sleeping for a while to ensure all pub/sub msgs are sent")
         time.sleep(10)
@@ -78,7 +71,6 @@ def send_event_to_pubsub(event):
   event_json = json.dumps(event)
   final_msg = { "Message": event_json }
   final_json = json.dumps(final_msg)
-  #print(final_json)
 
 
   def callback(message_future):
@@ -111,16 +103,17 @@ def process_account_event(body):
         uid = event["uid"].encode('utf-8')
         #uid = uid.encode('utf-8')
 
-        #print("Received event:")
-        #print(event)
-
-        if 'email' in event:
-          event['email'] = 'fakeemail@mozilla.com'
-
-        event['uid'] = hashlib.sha256( uid ).hexdigest()
-        
-        #print("Transformed event:")
-        #print(event)
+# obfuscation code for testing
+#        print("Received event:")
+#        print(event)
+#
+#        if 'email' in event:
+#          event['email'] = 'fakeemail@mozilla.com'
+#
+#        event['uid'] = hashlib.sha3_224( uid ).hexdigest()
+#
+#        print("Transformed event:")
+#        print(event)
 
         send_event_to_pubsub(event)
 
