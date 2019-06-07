@@ -21,6 +21,10 @@ def parse_user_agent(ua):
 def unixtime_to_ts(unix_ts):
     return datetime.utcfromtimestamp(int(unix_ts)).strftime('%Y-%m-%dT%H:%M:%SZ')
 
+def calc_lag_seconds(ts):
+    return (int(datetime.utcnow().timestamp()) - int(
+        datetime.utcfromtimestamp(int(ts)).strftime("%s")))
+
 def locale_to_lang(locale):
     lang = get_best_language(get_accept_languages(locale))
     return(lang or '')
