@@ -7,16 +7,24 @@
 import random
 import time, json, os, uuid, re, sys
 import logging
+import datetime
+from threading import Lock
+
 from google.cloud import pubsub_v1
 from google.cloud import spanner
 from google.cloud.spanner_v1 import param_types
 from google.api_core import exceptions
 
-from fxa_ingest.utils import (fxa_source_url, parse_user_agent, unixtime_to_ts, locale_to_lang)
-#from utils import (fxa_source_url, parse_user_agent, unixtime_to_ts, locale_to_lang)
+from fxa_ingest.utils import (fxa_source_url, parse_user_agent, unixtime_to_ts, locale_to_lang, calc_lag_seconds)
 
 #logging.basicConfig(level=logging.DEBUG)
 #logging.basicConfig(level=logging.INFO)
+
+# FxA's timestamps appear to be Pacific Time
+os.environ['TZ'] = 'US/Los_Angeles'
+time.tzset()
+
+logging_lock = Lock()
 
 pubsub_project_id = os.environ.get('PUBSUB_PROJECT_ID', '')
 subscription_name = os.environ.get('FXA_PUBSUB_SUBSCRIPTION', '')
@@ -42,6 +50,24 @@ MAX_BROWSER_LENGTH = 155
 MAX_UA_LENGTH      = 255
 MAX_EMAIL_LENGTH   = 255
 MAX_MC_LENGTH      = 255
+
+STATS      = {
+    'total_messages':              0,
+    'event_login':                 0,
+    'event_device_create':         0,
+    'event_device_delete':         0,
+    'event_verified':              0,
+    'event_delete':                0,
+    'lag_in_seconds':              0,
+    'failed_json_parse_1':         0,
+    'failed_json_parse_2':         0,
+    'ERROR_insert_device':         0,
+    'ERROR_delete_device':         0,
+    'ERROR_update_customer_email': 0,
+    'ERROR_failed_rows_inserted':  0,
+    'ERROR_failed_rows_failed':    0,
+}
+LAST_STATS = STATS.copy()
 
 # noinspection SqlNoDataSourceInspection
 raw_events_table_ddl = ("\n"
@@ -173,6 +199,8 @@ def safe_batch_insert2(event_unique_id, table_name, data):
     """
     logging.debug("safe_batch_insert2 called for %s" % event_unique_id)
 
+    global STATS
+
     columns = tuple(data.keys())
     values = tuple(data.values())
 
@@ -201,6 +229,7 @@ def safe_batch_insert2(event_unique_id, table_name, data):
             logging.warning(repr(e))
             logging.warning("safe_batch_insert2 %s - some other exception found: %s" % (event_unique_id, str(e)))
             if table_name == 'failed_inserts':
+                STATS['ERROR_failed_rows_failed'] = 1 + STATS.get('ERROR_failed_rows_failed', 0)
                 logging.error("ERROR: FAILED INSERTING!")
                 logging.error("ERROR: event_unique_id: %s" % str(event_unique_id))
                 logging.error("ERROR: error          : %s" % str(e))
@@ -216,6 +245,9 @@ def safe_batch_insert2(event_unique_id, table_name, data):
 
 
 def insert_failed_row(event_unique_id, message, table, error_str):
+    global STATS
+    STATS['ERROR_failed_rows_inserted'] = 1 + STATS.get('ERROR_failed_rows_inserted', 0)
+
     logging.warning("WARNING: INSERTING A FAILED ROW")
     logging.warning("WARNING: event_unique_id: {event_unique_id}".format(event_unique_id=event_unique_id))
     logging.warning("WARNING: error          : {error_str}".format(error_str=str(error_str)))
@@ -284,6 +316,7 @@ def handle_delete(event_unique_id, message_json, message_dict):
     # pass
 
 def insert_device(event_unique_id, message_json, message_dict):
+    global STATS
     try:
         safe_batch_insert2(
             event_unique_id, 'devices',
@@ -299,6 +332,7 @@ def insert_device(event_unique_id, message_json, message_dict):
     except exceptions.AlreadyExists as e:
         logging.debug("insert_device %s - exceptions.AlreadyExists encountered. skipping insert" % event_unique_id)
         #insert_failed_row(event_unique_id, message_json, 'devices', "%s" % str(e))
+        STATS['ERROR_insert_device'] = 1 + STATS.get('ERROR_insert_device', 0)
         return False
     except KeyError as e:
         insert_failed_row(event_unique_id, message_json, 'devices', "Missing key: %s" % str(e))
@@ -393,6 +427,7 @@ def insert_service_login(event_unique_id, message_json, message_dict):
 
 
 def delete_device(event_unique_id, message_json, message_dict):
+    global STATS
     try:
         with spanner_database.batch() as batch:
             batch.update(
@@ -407,9 +442,11 @@ def delete_device(event_unique_id, message_json, message_dict):
     except exceptions.NotFound as e:
         logging.debug("delete_device failed. no record found in database. uid={uid} "
                       "eui={eui}".format(uid=message_dict['uid'], eui=event_unique_id))
+        STATS['ERROR_delete_device'] = 1 + STATS.get('ERROR_delete_device', 0)
 
 
 def update_customer_email(event_unique_id, message_json, message_dict):
+    global STATS
     try:
         with spanner_database.batch() as batch:
             batch.update(
@@ -423,6 +460,7 @@ def update_customer_email(event_unique_id, message_json, message_dict):
     except exceptions.NotFound as e:
         logging.debug("update_customer_email failed. no record found in database. uid={uid} "
                       "eui={eui}".format(uid=message_dict['uid'], eui=event_unique_id))
+        STATS['ERROR_update_customer_email'] = 1 + STATS.get('ERROR_update_customer_email', 0)
 
 def update_customer_record(event_unique_id, message_json, data):
     logging.debug("update_customer_record called for %s" % event_unique_id)
@@ -501,6 +539,10 @@ def insert_raw_event(event_unique_id, message_json, message_dict):
 
 
 def pubsub_callback(message):
+    global STATS, LAST_STATS
+
+    STATS['total_messages'] = 1 + STATS.get('total_messages', 0)
+
     logging.debug('Received message: {}'.format(message))
     message_payload = message.data.decode('utf-8')
 
@@ -513,6 +555,7 @@ def pubsub_callback(message):
         # handle bad json here
         logging.warning("FAILED FIRST JSON PARSE")
         insert_failed_row(event_unique_id, message_payload, 'FIRST JSON PARSE', "BAD JSON")
+        STATS['failed_json_parse_1'] = 1 + STATS.get('failed_json_parse_1', 0)
         message.ack()
         return
 
@@ -524,6 +567,7 @@ def pubsub_callback(message):
         # handle bad json here
         logging.warning("FAILED SECOND JSON PARSE")
         insert_failed_row(event_unique_id, payload_json, 'SECOND JSON PARSE', "BAD JSON")
+        STATS['failed_json_parse_2'] = 1 + STATS.get('failed_json_parse_2', 0)
         message.ack()
         return
 
@@ -536,7 +580,21 @@ def pubsub_callback(message):
     if int(payload_dict['ts']) % 3600 == 0:
         logging.warning("processing data from {ts}".format(ts=unixtime_to_ts(payload_dict['ts'])))
 
-    if payload_dict['event'] == 'delete':
+    if int(datetime.datetime.now().strftime("%S"))  == 0 and logging_lock.acquire(blocking=False):
+        STATS['lag_in_seconds'] = calc_lag_seconds(payload_dict['ts'])
+        logging.warning("STATS: %s" % STATS)
+        if LAST_STATS:
+            # I'm not locking STATS, so this isn't an exact science
+            per_min = {k: STATS[k] - LAST_STATS[k] for k in LAST_STATS.keys()}
+            logging.warning("STATS PER MIN: %s" % per_min)
+        LAST_STATS = STATS.copy()
+        time.sleep(1)
+        logging_lock.release()
+
+    event = payload_dict['event']
+    STATS['event_' + event] = 1 + STATS.get('event_' + event, 0)
+
+    if event == 'delete':
         # "delete" event - remove user from all tables, including raw_events
         handle_delete(event_unique_id, payload_json, payload_dict)
 
@@ -545,31 +603,32 @@ def pubsub_callback(message):
         # pass the actual event json to insert_raw_event
         insert_raw_event(event_unique_id, payload_json, payload_dict)
 
-        if payload_dict['event'] == 'verified':
+        if event == 'verified':
             insert_customer_record(event_unique_id, payload_json, payload_dict)
 
-        elif payload_dict['event'] == 'login':
+        elif event == 'login':
             logging.debug("processing login event")
             insert_service_login(event_unique_id, payload_json, payload_dict)
 
-        elif payload_dict['event'] == 'device:create':
+        elif event == 'device:create':
             insert_device(event_unique_id, payload_json, payload_dict)
 
-        elif payload_dict['event'] == 'device:delete':
+        elif event == 'device:delete':
             delete_device(event_unique_id, payload_json, payload_dict)
 
-        elif payload_dict['event'] == 'primaryEmailChanged':
+        elif event == 'primaryEmailChanged':
             update_customer_email(event_unique_id, payload_json, payload_dict)
 
-        elif (payload_dict['event'] == 'profileDataChanged' or
-              payload_dict['event'] == 'passwordChange' or
-              payload_dict['event'] == 'reset'):
+        elif (event == 'profileDataChanged' or
+              event == 'passwordChange' or
+              event == 'reset'):
             # uncomment when historical events are loaded
             #update_customer_last_activity(event_unique_id, payload_json, payload_dict)
             pass
 
         else:
-            print("WARNING: Unknown event '%s'" % payload_dict['event'])
+            print("WARNING: Unknown event '%s'" % event)
+            STATS['event_UNKNOWN'] = 1 + STATS.get('event_UNKNOWN', 0)
 
     #logging.info(f"uid={payload_dict['uid']} eui={event_unique_id} -- {payload_dict['event']} event processed. ")
     message.ack()

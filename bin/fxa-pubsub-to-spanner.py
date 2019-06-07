@@ -19,6 +19,7 @@ args = parser.parse_args()
 
 #logging.basicConfig(level=logging.WARN)
 logging.basicConfig(level=args.log_level.upper())
+#logging.basicConfig(level=args.log_level.upper(), format='%(relativeCreated)6d %(threadName)s %(message)s')
 
 # let's rely on the database being there. no need to give this script too many permissions
 #try:
