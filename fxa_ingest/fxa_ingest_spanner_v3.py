@@ -3,6 +3,7 @@
 # TODO: Ability to replay events from raw_events that initially failed?
 # TODO: Refactor to actually do the updates in batches (need to figure out how
 #       to handle errors from multiple inserts)
+# TODO: stop abusing "warning" and switch most of those to "info"
 #
 import random
 import time, json, os, uuid, re, sys
@@ -54,8 +55,8 @@ MAX_MC_LENGTH      = 255
 STATS      = {
     'total_messages':              0,
     'event_login':                 0,
-    'event_device_create':         0,
-    'event_device_delete':         0,
+    'event_device:create':         0,
+    'event_device:delete':         0,
     'event_verified':              0,
     'event_delete':                0,
     'lag_in_seconds':              0,
@@ -312,7 +313,8 @@ def handle_delete(event_unique_id, message_json, message_dict):
     delete_customer_record(message_dict['uid'])
     delete_customer_devices(message_dict['uid'])
     delete_customer_service_logins(message_dict['uid'])
-    delete_customer_raw_events(message_dict['uid'])
+    # FIXME: remove below comment once backfill is complete
+    #delete_customer_raw_events(message_dict['uid'])
     # pass
 
 def insert_device(event_unique_id, message_json, message_dict):
