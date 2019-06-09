@@ -599,6 +599,7 @@ def pubsub_callback(message):
     if event == 'delete':
         # "delete" event - remove user from all tables, including raw_events
         handle_delete(event_unique_id, payload_json, payload_dict)
+        print("DELETE SEEN")
 
     else:
         # NOT a delete event
