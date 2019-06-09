@@ -306,10 +306,6 @@ def delete_customer_service_logins(fxa_id):
     spanner_database.run_in_transaction(delete_customer)
 
 def handle_delete(event_unique_id, message_json, message_dict):
-    # The table relationships mean all this customer's entries from
-    # child tables (like devices and service_logins) will also be
-    # deleted.
-    #
     delete_customer_record(message_dict['uid'])
     delete_customer_devices(message_dict['uid'])
     delete_customer_service_logins(message_dict['uid'])
@@ -598,8 +594,9 @@ def pubsub_callback(message):
 
     if event == 'delete':
         # "delete" event - remove user from all tables, including raw_events
+        # FIXME: remove this next line once backfill is complete
+        insert_raw_event(event_unique_id, payload_json, payload_dict)
         handle_delete(event_unique_id, payload_json, payload_dict)
-        print("DELETE SEEN")
 
     else:
         # NOT a delete event
