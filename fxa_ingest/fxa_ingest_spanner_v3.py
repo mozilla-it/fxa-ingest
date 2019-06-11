@@ -100,7 +100,6 @@ customer_record_table_ddl = ("\n"
                                   "  fxa_ts            TIMESTAMP NOT NULL,\n"
                                   "  email             STRING({MAX_EMAIL_LENGTH}),\n"
                                   "  service           STRING({MAX_SERVICE_LENGTH}),\n"
-                                  "  create_ts         TIMESTAMP NOT NULL OPTIONS(allow_commit_timestamp=true),\n"
                                   "  locale            STRING({MAX_LOCALE_LENGTH}),\n"
                                   "  lang              STRING({MAX_LANG_LENGTH}),\n"
                                   "  marketing_opt_in  BOOL,\n"
@@ -465,7 +464,7 @@ def update_customer_record(event_unique_id, message_json, data):
     with spanner_database.batch() as batch:
         batch.update(
             table='customer_record',
-            columns=('insert_id', 'fxa_id', 'fxa_ts', 'email', 'service', 'create_ts',
+            columns=('insert_id', 'fxa_id', 'fxa_ts', 'email', 'service',
                      'locale', 'lang', 'marketing_opt_in', 'metrics_context'),
             values=[(
                 event_unique_id,
@@ -473,7 +472,6 @@ def update_customer_record(event_unique_id, message_json, data):
                 data['fxa_ts'],
                 transform('email', data),
                 transform('service', data),
-                data['fxa_ts'],
                 transform('locale', data),
                 transform('lang', data),
                 transform('marketing_opt_in', data),
@@ -494,7 +492,6 @@ def insert_customer_record(event_unique_id, message_json, message_dict, stub_dat
             'fxa_ts':           message_dict['fxa_ts'],
             'email':            None,
             'service':          transform('service', message_dict),
-            'create_ts':        message_dict['fxa_ts'],
             'locale':           None,
             'lang':             None,
             'marketing_opt_in': False,
@@ -507,7 +504,6 @@ def insert_customer_record(event_unique_id, message_json, message_dict, stub_dat
             'fxa_ts':            transform('ts',               message_dict),
             'email':             transform('email',            message_dict),
             'service':           transform('service',          message_dict),
-            'create_ts':         transform('ts',               message_dict),
             'locale':            transform('locale',           message_dict),
             'lang':              transform('lang',             message_dict),
             'marketing_opt_in':  transform('marketing_opt_in', message_dict),
