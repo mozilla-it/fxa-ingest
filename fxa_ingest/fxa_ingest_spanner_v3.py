@@ -308,8 +308,7 @@ def handle_delete(event_unique_id, message_json, message_dict):
     delete_customer_record(message_dict['uid'])
     delete_customer_devices(message_dict['uid'])
     delete_customer_service_logins(message_dict['uid'])
-    # FIXME: remove below comment once backfill is complete
-    #delete_customer_raw_events(message_dict['uid'])
+    delete_customer_raw_events(message_dict['uid'])
     # pass
 
 def insert_device(event_unique_id, message_json, message_dict):
@@ -590,8 +589,6 @@ def pubsub_callback(message):
 
     if event == 'delete':
         # "delete" event - remove user from all tables, including raw_events
-        # FIXME: remove this next line once backfill is complete
-        insert_raw_event(event_unique_id, payload_json, payload_dict)
         handle_delete(event_unique_id, payload_json, payload_dict)
 
     else:
