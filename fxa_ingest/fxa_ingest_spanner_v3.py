@@ -147,6 +147,14 @@ devices_table_ddl = ("\n"
                      ") PRIMARY KEY (fxa_id, device_id)").format(MAX_ID_LENGTH=MAX_ID_LENGTH,
                                                                  MAX_MC_LENGTH=MAX_MC_LENGTH)
 
+# noinspection SqlNoDataSourceInspection
+deletes_table_ddl = ("\n"
+                     "CREATE TABLE deletes (\n"
+                     "  insert_id        STRING({MAX_ID_LENGTH}) NOT NULL,\n"
+                     "  fxa_id           STRING({MAX_ID_LENGTH}) NOT NULL,\n"
+                     "  fxa_ts           TIMESTAMP NOT NULL\n"
+                     ") PRIMARY KEY (fxa_id)").format(MAX_ID_LENGTH=MAX_ID_LENGTH)
+
 
 def create_database():
     spanner_database = spanner_instance.database(spanner_database_id, ddl_statements=[
@@ -305,11 +313,29 @@ def delete_customer_service_logins(fxa_id):
     spanner_database.run_in_transaction(delete_customer)
 
 def handle_delete(event_unique_id, message_json, message_dict):
+    insert_delete(event_unique_id, message_json, message_dict)
     delete_customer_record(message_dict['uid'])
     delete_customer_devices(message_dict['uid'])
     delete_customer_service_logins(message_dict['uid'])
     delete_customer_raw_events(message_dict['uid'])
-    # pass
+
+def insert_delete(event_unique_id, message_json, message_dict):
+    try:
+        safe_batch_insert2(
+            event_unique_id, 'deletes',
+            {
+                'insert_id':       event_unique_id,
+                'fxa_id':          transform('uid', message_dict),
+                'fxa_ts':          transform('ts', message_dict),
+            })
+    except exceptions.AlreadyExists as e:
+        logging.debug("insert_delete %s - exceptions.AlreadyExists encountered. skipping insert" % event_unique_id)
+        return False
+    except KeyError as e:
+        insert_failed_row(event_unique_id, message_json, 'deletes', "Missing key: %s" % str(e))
+        return False
+
+    return True
 
 def insert_device(event_unique_id, message_json, message_dict):
     global STATS
@@ -654,6 +680,6 @@ if __name__ == '__main__':
 #        pass
 #    except exceptions.AlreadyExists as e:
 #        pass
-    for table_name in ['raw_events', 'failed_inserts', 'customer_record', 'service_logins', 'devices']:
+    for table_name in ['raw_events', 'failed_inserts', 'customer_record', 'service_logins', 'devices', 'deletes']:
         create_table(table_name)
     listen_loop()
