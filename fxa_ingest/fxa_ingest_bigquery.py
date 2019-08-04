@@ -18,7 +18,7 @@ from google.api_core import exceptions
 from fxa_ingest.utils import (fxa_source_url, parse_user_agent, unixtime_to_ts, locale_to_lang, calc_lag_seconds)
 
 #logging.basicConfig(level=logging.DEBUG)
-#logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 # FxA's timestamps appear to be Pacific Time
 os.environ['TZ'] = 'US/Los_Angeles'
@@ -290,7 +290,7 @@ def insert_raw_event(event_unique_id, message_json, message_dict):
     }
 
     logging.debug("attemping BQ raw_events insert for %s" % event_unique_id)
-    response = bq_client.insert_rows(bq_tables['raw_events'], [ tuple(data_to_insert.values()) ] )
+    response = bq_client.insert_rows(bq_tables['raw_events'], [ data_to_insert ] )
     if response:
         logging.warning("raw_events insert error for eui: %s error(s): %s" % (event_unique_id, response))
         raise Exception("BQ insert failed")
