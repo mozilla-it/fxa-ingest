@@ -29,19 +29,20 @@ logging_lock = Lock()
 pubsub_project_id = os.environ.get('PUBSUB_PROJECT_ID', '')
 subscription_name = os.environ.get('FXA_PUBSUB_SUBSCRIPTION_FOR_BIGQUERY', '')
 
-spanner_project_id  = os.environ.get('SPANNER_PROJECT_ID', '')
+bigquery_project_id = os.environ.get('BIGQUERY_PROJECT_ID', '')
+bigquery_dataset    = os.environ.get('BIGQUERY_DATASET', '')
 #spanner_instance_id = os.environ.get('SPANNER_INSTANCE_ID', '')
 #spanner_database_id = os.environ.get('SPANNER_DATABASE_ID', 'fxa')
 
-if not pubsub_project_id or not subscription_name or not spanner_project_id:
+if not pubsub_project_id or not subscription_name or not bigquery_project_id:
     raise Exception('Required ENV vars missing')
 
 #spanner_client   = spanner.Client(project=spanner_project_id)
 #spanner_instance = spanner_client.instance(spanner_instance_id)
 #spanner_database = spanner_instance.database(spanner_database_id)
 
-bq_client  = bigquery.Client(project=spanner_project_id)
-bq_dataset = bq_client.dataset('fxa_streaming')
+bq_client  = bigquery.Client(project=bigquery_project_id)
+bq_dataset = bq_client.dataset(bigquery_dataset)
 
 bq_tables = {}
 for table_name in ['raw_events', 'customer_record', 'devices', 'service_logins', 'deletes', 'primary_email_change', 'device_deletes']:
