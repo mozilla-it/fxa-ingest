@@ -45,9 +45,10 @@ bq_client  = bigquery.Client(project=bigquery_project_id)
 bq_dataset = bq_client.dataset(bigquery_dataset)
 
 bq_tables = {}
-for table_name in ['raw_events', 'customer_record', 'devices', 'service_logins', 'deletes', 'primary_email_change', 'device_deletes']:
-    print("getting bq table %s" % table_name)
-    bq_tables[table_name] = bq_client.get_table(bq_dataset.table(table_name)) # this seems unnecessarily complicated
+if bigquery_project_id != 'FAKE':
+  for table_name in ['raw_events', 'customer_record', 'devices', 'service_logins', 'deletes', 'primary_email_change', 'device_deletes']:
+      print("getting bq table %s" % table_name)
+      bq_tables[table_name] = bq_client.get_table(bq_dataset.table(table_name)) # this seems unnecessarily complicated
 
 MAX_LANG_LENGTH    = 100
 MAX_OS_LENGTH      = 100
@@ -139,26 +140,40 @@ def transform(field_name, data):
             return data['newsletters']
         return []
     elif field_name == 'useragent':
-        return data[:MAX_UA_LENGTH]
+        if 'useragent' in data and data['useragent']:
+          return data['useragent'][:MAX_UA_LENGTH]
+        return None
     elif field_name == 'os':
-        return data[:MAX_OS_LENGTH]
+        if 'os' in data and data['os']:
+          return data['os'][:MAX_OS_LENGTH]
+        return None
     elif field_name == 'os_ver':
-        return data[:MAX_OS_LENGTH]
+        if 'os_ver' in data and data['os_ver']:
+          return data['os_ver'][:MAX_OS_LENGTH]
+        return None
     elif field_name == 'browser':
-        return data[:MAX_BROWSER_LENGTH]
+        if 'browser' in data and data['browser']:
+          return data['browser'][:MAX_BROWSER_LENGTH]
+        return None
     elif field_name == 'metrics_context':
         mc = fxa_source_url(data.get('metricsContext', {}))
         if mc:
             mc = mc[:MAX_MC_LENGTH]
         return mc
     elif field_name == 'ts':
-        return unixtime_to_ts(data['ts'])
+        if 'ts' in data and data['ts']:
+          return unixtime_to_ts(data['ts'])
+        return None
     elif field_name == 'device_type':
         return data.get('type', 'is_placeholder')
     elif field_name == 'uid':
-        return data['uid'][:MAX_ID_LENGTH]
+        if 'uid' in data and data['uid']:
+          return data['uid'][:MAX_ID_LENGTH]
+        return None
     elif field_name == 'device_id':
-        return data['id'][:MAX_ID_LENGTH]
+        if 'id' in data and data['id']:
+          return data['id'][:MAX_ID_LENGTH]
+        return None
     elif field_name == 'device_count':
         return data.get('deviceCount', 0)
     elif field_name == 'email':
@@ -200,10 +215,10 @@ def insert_service_login(event_unique_id, message_json, message_dict):
         'device_count':    transform('device_count', message_dict),
         'country':         transform('country', message_dict),
         'country_code':    transform('country_code', message_dict),
-        'useragent':       transform('useragent', ua),
-        'os':              transform('os', os),
-        'os_version':      transform('os_ver', os_ver),
-        'browser':         transform('browser', browser),
+        'useragent':       transform('useragent', {'useragent': ua}),
+        'os':              transform('os', {'os': os}),
+        'os_version':      transform('os_ver', {'os_ver': os_ver}),
+        'browser':         transform('browser', {'browser': browser}),
         'metrics_context': transform('metrics_context', message_dict),
     }
 
