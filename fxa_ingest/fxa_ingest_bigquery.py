@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 #
 # TODO: Ability to replay events from raw_events that initially failed?
-# TODO: Refactor to actually do the updates in batches (need to figure out how
-#       to handle errors from multiple inserts)
 # TODO: stop abusing "warning" and switch most of those to "info"
 #
 import random
@@ -95,7 +93,7 @@ def insert_delete(event_unique_id, message_json, message_dict):
     logging.debug("attemping BQ deletes insert for %s" % event_unique_id)
     response = bq_client.insert_rows(bq_tables['deletes'], [ data_to_insert ] )
     if response:
-        logging.error("deletes insert error for eui: %s error(s): %s" % (event_unique_id, response))
+        logging.error("deletes insert error for eui: %s fxa_id: %s error(s): %s" % (event_unique_id, data_to_insert['fxa_id'], response))
         raise Exception("BQ insert failed")
 
     return True
@@ -117,7 +115,7 @@ def insert_device(event_unique_id, message_json, message_dict):
     logging.debug("attemping BQ devices insert for %s" % event_unique_id)
     response = bq_client.insert_rows(bq_tables['devices'], [ data_to_insert ] , row_ids=[ data_to_insert['device_id'] ] )
     if response:
-        logging.error("devicecs insert error for eui: %s error(s): %s" % (event_unique_id, response))
+        logging.error("devicecs insert error for eui: %s fxa_id: %s error(s): %s" % (event_unique_id, data_to_insert['fxa_id'], response))
         raise Exception("BQ insert failed")
 
     return True
@@ -228,7 +226,7 @@ def insert_service_login(event_unique_id, message_json, message_dict):
         unique_id_for_bq += data_to_insert['service']
     response = bq_client.insert_rows(bq_tables['service_logins'], [ data_to_insert ] , row_ids=[ unique_id_for_bq ] )
     if response:
-        logging.error("insert error for eui: %s error(s): %s" % (event_unique_id, response))
+        logging.error("service_logins insert error for eui: %s fxa_id: %s error(s): %s" % (event_unique_id, data_to_insert['fxa_id'], response))
         raise Exception("BQ insert failed")
 
     return True
@@ -248,7 +246,7 @@ def delete_device(event_unique_id, message_json, message_dict):
     unique_id_for_bq = data_to_insert['device_id']
     response = bq_client.insert_rows(bq_tables['device_deletes'], [ data_to_insert ] , row_ids=[ unique_id_for_bq ]  )
     if response:
-        logging.error("delete_device insert error for eui: %s error(s): %s" % (event_unique_id, response))
+        logging.error("delete_device insert error for eui: %s fxa_id: %s error(s): %s" % (event_unique_id, data_to_insert['fxa_id'], response))
         raise Exception("BQ insert failed")
 
 def update_customer_email(event_unique_id, message_json, message_dict):
@@ -264,7 +262,7 @@ def update_customer_email(event_unique_id, message_json, message_dict):
     logging.debug("attemping BQ primary_email_change insert for %s" % event_unique_id)
     response = bq_client.insert_rows(bq_tables['primary_email_change'], [ data_to_insert ] )
     if response:
-        logging.error("primary_email_change insert error for eui: %s error(s): %s" % (event_unique_id, response))
+        logging.error("primary_email_change insert error for eui: %s fxa_id: %s error(s): %s" % (event_unique_id, data_to_insert['fxa_id'], response))
         raise Exception("BQ insert failed")
 
 def insert_customer_record(event_unique_id, message_json, message_dict):
@@ -290,7 +288,7 @@ def insert_customer_record(event_unique_id, message_json, message_dict):
     # specify row_ids so BQ can dedupe on their end (we're getting dupe events from the queue)
     response = bq_client.insert_rows(bq_tables['customer_record'], [ data_to_insert ], row_ids=[ data_to_insert['fxa_id'] ] )
     if response:
-        logging.error("customer_record insert error for eui: %s error(s): %s" % (event_unique_id, response))
+        logging.error("customer_record insert error for eui: %s fxa_id: %s error(s): %s" % (event_unique_id, data_to_insert['fxa_id'], response))
         raise Exception("BQ insert failed")
 
     logging.debug("insert_customer_record finished for %s" % event_unique_id)
@@ -307,7 +305,7 @@ def insert_raw_event(event_unique_id, message_json, message_dict):
     logging.debug("attemping BQ raw_events insert for %s" % event_unique_id)
     response = bq_client.insert_rows(bq_tables['raw_events'], [ data_to_insert ] )
     if response:
-        logging.error("raw_events insert error for eui: %s error(s): %s" % (event_unique_id, response))
+        logging.error("raw_events insert error for eui: %s fxa_id: %s error(s): %s" % (event_unique_id, data_to_insert['fxa_id'], response))
         raise Exception("BQ insert failed")
 
 def pubsub_callback(message):
