@@ -14,8 +14,6 @@ else
   IMG=gcr.io/dp2-admin/github.com/mozilla-it/fxa-ingest:$TRAVIS_BRANCH
 fi
 
-pytest
-
 mkdir ~/.docker
 
 docker build -t $IMG .
