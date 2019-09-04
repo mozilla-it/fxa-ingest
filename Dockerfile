@@ -1,5 +1,6 @@
 FROM google/cloud-sdk
 
-RUN apt-get update && apt-get install python3                         \
-    && apt-get install python3-pip -y                                 \
-    && pip3 install git+https://github.com/mozilla-it/fxa-ingest
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip  && \
+    pip3 install --upgrade --no-cache-dir .
+

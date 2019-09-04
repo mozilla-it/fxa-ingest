@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -ex
+
+if [ -r "${GOOGLE_APPLICATION_CREDENTIALS:?}" ]; then
+  gcloud -q auth activate-service-account --key-file "${GOOGLE_APPLICATION_CREDENTIALS:?}"
+fi
+
+if [ "$TRAVIS_BRANCH" == "master" ]; then
+  ENV=stage
+  IMG=gcr.io/dp2-admin/github.com/mozilla-it/fxa-ingest:$TRAVIS_BRANCH
+else
+  ENV=$TRAVIS_BRANCH
+  IMG=gcr.io/dp2-admin/github.com/mozilla-it/fxa-ingest:$TRAVIS_BRANCH
+fi
+
+pytest
+
+mkdir ~/.docker
+
+docker build -t $IMG .
+
+if [[ "$TRAVIS_PULL_REQUEST" = "false" ]]; then
+  gcloud docker -- push $IMG
+fi
+
