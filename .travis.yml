@@ -8,5 +8,6 @@ before_install:
 - sudo apt-get update
 - sudo apt-get install -y python3-pip
 - pip3 install pytest
+- pip3 install --upgrade --no-cache-dir .
 script:
 - ./bin/deploy
