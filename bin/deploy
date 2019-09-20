@@ -9,9 +9,12 @@ fi
 if [ "$TRAVIS_BRANCH" == "master" ]; then
   ENV=stage
   IMG=gcr.io/dp2-admin/github.com/mozilla-it/fxa-ingest:$TRAVIS_BRANCH
+  MANIFEST=k8s/k8s-deployment-fxa-pubsub-to-bigquery.yaml
+
 else
   ENV=$TRAVIS_BRANCH
   IMG=gcr.io/dp2-admin/github.com/mozilla-it/fxa-ingest:$TRAVIS_BRANCH
+  MANIFEST=k8s/k8s-deployment-fxa-sqs-to-pubsub-cdp-prod.yaml
 fi
 
 mkdir ~/.docker
@@ -20,5 +23,18 @@ docker build -t $IMG .
 
 if [[ "$TRAVIS_PULL_REQUEST" = "false" ]]; then
   gcloud docker -- push $IMG
+fi
+
+if [[ "$ENV" = "stage" || "$ENV" = "prod" ]]; then
+  gcloud config set project "mozilla-cdp-${ENV}"
+
+  curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+  chmod +x kubectl
+
+  stuff=($(gcloud container clusters list | grep "mozilla-cdp-${ENV}" | awk '{print $1,$2}'))
+  cluster=${stuff[0]}
+  zone=${stuff[1]}
+  gcloud container clusters get-credentials $cluster --zone=$zone
+  ./kubectl apply -f $MANIFEST
 fi
 

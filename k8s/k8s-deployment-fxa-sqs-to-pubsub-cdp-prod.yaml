@@ -18,7 +18,7 @@ spec:
           secretName: fxa-service-account
       containers:
       - name: fxa-ingest
-        image: gcr.io/mozilla-cdp-prod/fxa-ingest:prod
+        image: gcr.io/dp2-admin/github.com/mozilla-it/fxa-ingest:prod
         #image: gcr.io/imposing-union-227917/fxa-ingest:dev
         imagePullPolicy: Always
         command: ["sh"]

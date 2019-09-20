@@ -18,7 +18,7 @@ spec:
           secretName: fxa-service-account
       containers:
       - name: fxa-ingest
-        image: gcr.io/mozilla-cdp-prod/fxa-ingest:prod
+        image: gcr.io/dp2-admin/github.com/mozilla-it/fxa-ingest:prod
         imagePullPolicy: Always
         command: ["sh"]
         args: ["-c", "/usr/local/bin/fxa-pubsub-to-bq.py", "--log-level", "WARNING"]
