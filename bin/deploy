@@ -9,12 +9,9 @@ fi
 if [ "$TRAVIS_BRANCH" == "master" ]; then
   ENV=stage
   IMG=gcr.io/dp2-admin/github.com/mozilla-it/fxa-ingest:$TRAVIS_BRANCH
-  MANIFEST=k8s/k8s-deployment-fxa-pubsub-to-bigquery.yaml
-
 else
   ENV=$TRAVIS_BRANCH
   IMG=gcr.io/dp2-admin/github.com/mozilla-it/fxa-ingest:$TRAVIS_BRANCH
-  MANIFEST=k8s/k8s-deployment-fxa-sqs-to-pubsub-cdp-prod.yaml
 fi
 
 mkdir ~/.docker
@@ -35,6 +32,9 @@ if [[ "$ENV" = "stage" || "$ENV" = "prod" ]]; then
   cluster=${stuff[0]}
   zone=${stuff[1]}
   gcloud container clusters get-credentials $cluster --zone=$zone
-  ./kubectl apply -f $MANIFEST
+  ./kubectl apply -f k8s/k8s-deployment-fxa-pubsub-to-bigquery.yaml
+  if [[ "$ENV" = "prod" ]]; then
+    ./kubectl apply -f k8s/k8s-deployment-fxa-sqs-to-pubsub-cdp-prod.yaml
+  fi
 fi
 

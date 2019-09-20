@@ -15,7 +15,10 @@ spec:
       volumes:
       - name: google-cloud-key
         secret:
-          secretName: fxa-service-account
+          secretName: fxa-service-secrets
+          items:
+          - key: creds.json
+            path: creds.json
       containers:
       - name: fxa-ingest
         image: gcr.io/dp2-admin/github.com/mozilla-it/fxa-ingest:prod
@@ -25,10 +28,11 @@ spec:
         args: ["-c", "/usr/local/bin/sqs-to-pubsub.py"]
         volumeMounts:
         - name: google-cloud-key
-          mountPath: /var/secrets/google
+          mountPath: /opt/secrets
+          readOnly: true
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /var/secrets/google/key.json
+          value: /opt/secrets/creds.json
         envFrom:
         - secretRef:
             name: fxa-sqs-to-pubsub-secrets
