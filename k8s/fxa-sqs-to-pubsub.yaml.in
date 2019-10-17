@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: fxa-sqs-to-pubsub
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sqs-to-pubsub
+  template:
+    metadata:
+      labels:
+        app: sqs-to-pubsub
+    spec:
+      containers:
+      - args:
+        - -c
+        - /usr/local/bin/sqs-to-pubsub.py
+        command:
+        - sh
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/key.json
+        envFrom:
+        - secretRef:
+            name: fxa-sqs-to-pubsub-secrets
+        image: $IMG
+        imagePullPolicy: Always
+        name: fxa-ingest
+        volumeMounts:
+        - mountPath: /var/secrets/google
+          name: google-cloud-key
+      volumes:
+      - name: google-cloud-key
+        secret:
+          defaultMode: 420
+          secretName: fxa-service-account

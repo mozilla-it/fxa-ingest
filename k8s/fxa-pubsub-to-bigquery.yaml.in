@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: fxa-pubsub-to-bigquery
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fxa-pubsub-to-bigquery
+  template:
+    metadata:
+      labels:
+        app: fxa-pubsub-to-bigquery
+    spec:
+      containers:
+      - args:
+        - -c
+        - /usr/local/bin/fxa-pubsub-to-bq.py
+        - --log-level
+        - WARNING
+        command:
+        - sh
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/key.json
+        envFrom:
+        - secretRef:
+            name: fxa-ingest-secrets
+        image: $IMG
+        imagePullPolicy: Always
+        name: fxa-ingest
+        volumeMounts:
+        - mountPath: /var/secrets/google
+          name: google-cloud-key
+      volumes:
+      - name: google-cloud-key
+        secret:
+          defaultMode: 420
+          secretName: fxa-service-account
