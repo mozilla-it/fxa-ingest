@@ -1,3 +1,4 @@
-google-cloud-pubsub==0.41.0
-user-agents==2.0
-boto==2.49.0
+boto3==1.12.49
+google-cloud-bigquery==1.24.0
+google-cloud-pubsub==1.4.3
+user-agents==2.1
