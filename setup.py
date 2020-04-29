@@ -15,7 +15,6 @@ setup(name='fxa-ingest',
         'google-cloud-bigquery==1.17.0',
         'grpcio-gcp==0.2.2',   # this seems to be explicitly required on debian python 3.5  ?!
         'user-agents==2.0',
-        'boto3==1.9.159',
         'click',
       ]
     )
