@@ -1,5 +1,5 @@
 google-cloud-pubsub==0.41.0
-google-cloud-spanner==1.9.0
+google-cloud-spanner==1.15.1
 user-agents==2.0
 boto==2.49.0
 #PyMySQL==0.9.3
